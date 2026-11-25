@@ -1,4 +1,3 @@
-
 package com.example.contactbook
 
 import android.content.Context
@@ -80,12 +79,12 @@ fun saveContacts(
         array.put(item)
     }
 
-    context.getSharedPreferences(
+    val saved = context.getSharedPreferences(
         "contact_book",
         Context.MODE_PRIVATE
     ).edit()
         .putString("contacts", array.toString())
-        .apply()
+        .commit()
 }
 
 @Composable
@@ -100,15 +99,10 @@ fun ContactBookScreen(context: Context) {
     var showDialog by remember { mutableStateOf(false) }
 
     var nextId by remember {
-        mutableIntStateOf(
-            (contacts.maxOfOrNull { it.id } ?: 0) + 1
-        )
+        mutableIntStateOf(getNextId(contacts))
     }
 
-    val filteredContacts = contacts.filter {
-        it.name.contains(search, ignoreCase = true) ||
-                it.phone.contains(search)
-    }
+    val filteredContacts = searchContacts(contacts, search)
 
     Column(
         modifier = Modifier
@@ -236,8 +230,7 @@ fun AddContactDialog(
                 onClick = {
                     onAdd(name.trim(), phone.trim())
                 },
-                enabled = name.isNotBlank() &&
-                        phone.isNotBlank()
+                enabled = isValidName(name) && isValidPhone(phone)
             ) {
                 Text("Сохранить")
             }
